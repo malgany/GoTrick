@@ -1,0 +1,29 @@
+name: Windows validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Prepare pinned dependencies
+        shell: pwsh
+        run: ./scripts/setup.ps1
+      - name: Build and test plugin
+        shell: pwsh
+        run: ./build.ps1
+      - name: Validate Go, LSP and DAP
+        shell: pwsh
+        run: node scripts/smoke.mjs
+      - name: Validate branded runtime
+        shell: pwsh
+        run: ./scripts/verify-branding.ps1

@@ -1,0 +1,70 @@
+<idea-plugin>
+    <id>dev.gotrick</id>
+    <name>GoTrick</name>
+    <vendor>GoTrick</vendor>
+    <description><![CDATA[
+        Go development on the open IntelliJ platform: language editing, gopls code intelligence,
+        Go run configurations, tests and Delve debugging. Independent implementation.
+    ]]></description>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.xdebugger</depends>
+    <depends>com.redhat.devtools.lsp4ij</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="GoTrick Go" language="GoTrickGo" extensions="go" implementationClass="dev.gotrick.language.GoFileType" fieldName="INSTANCE"/>
+        <fileType name="GoTrick Go Module" language="GoTrickGoMod" fileNames="go.mod" implementationClass="dev.gotrick.language.GoModFileType" fieldName="INSTANCE"/>
+        <fileType name="GoTrick Go Workspace" language="GoTrickGoWork" fileNames="go.work" implementationClass="dev.gotrick.language.GoWorkFileType" fieldName="INSTANCE"/>
+        <lang.parserDefinition language="GoTrickGo" implementationClass="dev.gotrick.language.GoParserDefinition"/>
+        <lang.parserDefinition language="GoTrickGoMod" implementationClass="dev.gotrick.language.GoModParserDefinition"/>
+        <lang.parserDefinition language="GoTrickGoWork" implementationClass="dev.gotrick.language.GoWorkParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="GoTrickGo" implementationClass="dev.gotrick.language.GoSyntaxHighlighterFactory"/>
+        <lang.syntaxHighlighterFactory language="GoTrickGoMod" implementationClass="dev.gotrick.language.GoManifestSyntaxHighlighterFactory"/>
+        <lang.syntaxHighlighterFactory language="GoTrickGoWork" implementationClass="dev.gotrick.language.GoManifestSyntaxHighlighterFactory"/>
+        <lang.braceMatcher language="GoTrickGo" implementationClass="dev.gotrick.language.GoBraceMatcher"/>
+        <lang.braceMatcher language="GoTrickGoMod" implementationClass="dev.gotrick.language.GoBraceMatcher"/>
+        <lang.braceMatcher language="GoTrickGoWork" implementationClass="dev.gotrick.language.GoBraceMatcher"/>
+        <lang.commenter language="GoTrickGo" implementationClass="dev.gotrick.language.GoCommenter"/>
+        <lang.commenter language="GoTrickGoMod" implementationClass="dev.gotrick.language.GoManifestCommenter"/>
+        <lang.commenter language="GoTrickGoWork" implementationClass="dev.gotrick.language.GoManifestCommenter"/>
+        <lang.foldingBuilder language="GoTrickGo" implementationClass="dev.gotrick.language.GoFoldingBuilder"/>
+        <lang.quoteHandler fileType="GoTrick Go" className="dev.gotrick.language.GoQuoteHandler"/>
+        <lang.quoteHandler fileType="GoTrick Go Module" className="dev.gotrick.language.GoQuoteHandler"/>
+        <lang.quoteHandler fileType="GoTrick Go Workspace" className="dev.gotrick.language.GoQuoteHandler"/>
+        <colorSettingsPage implementation="dev.gotrick.language.GoColorSettingsPage"/>
+        <lang.psiStructureViewFactory language="GoTrickGo" implementationClass="com.redhat.devtools.lsp4ij.features.documentSymbol.LSPDocumentSymbolStructureViewFactory"/>
+        <codeInsight.parameterInfo language="GoTrickGo" implementationClass="com.redhat.devtools.lsp4ij.features.signatureHelp.LSPParameterInfoHandler"/>
+        <applicationConfigurable parentId="tools" id="dev.gotrick.settings" instance="dev.gotrick.settings.GoTrickConfigurable" displayName="GoTrick / Go"/>
+        <projectConfigurable parentId="tools" id="dev.gotrick.sdk" instance="dev.gotrick.settings.GoSdkConfigurable" displayName="GoTrick / Go SDK"/>
+        <configurationType implementation="dev.gotrick.run.GoRunConfigurationType"/>
+        <runConfigurationProducer implementation="dev.gotrick.run.GoRunConfigurationProducer"/>
+        <runLineMarkerContributor language="GoTrickGo" implementationClass="dev.gotrick.run.GoRunLineMarkerContributor"/>
+        <notificationGroup id="GoTrick" displayType="BALLOON"/>
+        <postStartupActivity implementation="dev.gotrick.settings.GoSdkStartupActivity"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <server id="gotrick.gopls" name="GoTrick / gopls" factoryClass="dev.gotrick.lsp.GoLanguageServerFactory">
+            <description><![CDATA[Go completion, diagnostics, navigation, references, rename and formatting. Configure tool paths in Tools / GoTrick.]]></description>
+        </server>
+        <languageMapping language="GoTrickGo" serverId="gotrick.gopls" languageId="go"/>
+        <languageMapping language="GoTrickGoMod" serverId="gotrick.gopls" languageId="go.mod"/>
+        <languageMapping language="GoTrickGoWork" serverId="gotrick.gopls" languageId="go.work"/>
+        <debugAdapterServer id="gotrick.delve" name="GoTrick / Delve" factoryClass="dev.gotrick.debug.GoDebugAdapterFactory">
+            <description><![CDATA[Debug a Go package with the open Delve debugger. Use GoTrick / Debug Package.]]></description>
+        </debugAdapterServer>
+    </extensions>
+    <actions>
+        <group id="GoTrick.Menu" text="GoTrick" popup="true">
+            <action id="GoTrick.SDK" class="dev.gotrick.settings.GoSdkAction" text="Configure Go SDK…"/>
+            <add-to-group group-id="MainMenu" anchor="before" relative-to-action="ToolsMenu"/>
+            <action id="GoTrick.NewProject" class="dev.gotrick.project.GoNewProjectAction" text="New Go Project..."/>
+            <separator/>
+            <action id="GoTrick.Run" class="dev.gotrick.run.GoRunPackageAction" text="Run Package"/>
+            <action id="GoTrick.Debug" class="dev.gotrick.debug.GoDebugAction" text="Debug Package"/>
+            <action id="GoTrick.Build" class="dev.gotrick.run.GoBuildProjectAction" text="Build Project"/>
+            <action id="GoTrick.Test" class="dev.gotrick.run.GoTestProjectAction" text="Test Project"/>
+            <action id="GoTrick.Vet" class="dev.gotrick.run.GoVetProjectAction" text="Check Project (go vet)"/>
+            <separator/>
+            <action id="GoTrick.Tidy" class="dev.gotrick.run.GoModTidyAction" text="Tidy Go Modules"/>
+        </group>
+    </actions>
+</idea-plugin>

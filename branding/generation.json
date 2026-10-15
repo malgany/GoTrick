@@ -1,0 +1,15 @@
+{
+  "tool": "Built-in image_gen.imagegen",
+  "date": "2026-10-15",
+  "logo": {
+    "file": "logo-source.png",
+    "transparent_background": true,
+    "prompt": "Use case: logo-brand. Create the final application icon for GoTrick, an independent desktop programming IDE for Go. One original, professional, compact geometric GT monogram, subtly incorporating a forward arrow or code bracket. Bold simple silhouette with generous strokes that remains legible at 16–32 pixels. Crisp flat vector-like design, refined modern developer-tool identity; restrained teal/cyan and deep ink tones suited to both dark and light Windows UI. Square composition, centered mark with modest even safe margins. Transparent background with true alpha. Icon only, no full wordmark, no surrounding mockup, no text beyond the integrated GT letterforms, no watermark, no existing company logos, no JetBrains or Go gopher marks, no elaborate texture or small decorative details. Deliver a single high-resolution square icon."
+  },
+  "splash": {
+    "file": "splash-source.png",
+    "reference": "logo-source.png",
+    "prompt": "Use case: logo-brand. Create a polished desktop IDE startup splash screen for GoTrick using the attached GT monogram as the exact brand reference. Preserve the recognizable cyan GT arrow monogram, its geometry and colors. Landscape canvas 3:2, clean deep ink/navy background. Center a restrained medium-size logo above the exact word 'GoTrick' in crisp modern white sans-serif typography, with generous quiet space. Below it in small readable understated type put exactly 'Go development environment'. No other text, no version number, no JetBrains marks, no extra icons, no fake UI, no noisy decoration. This is a final usable splash artwork, not a mockup. Balanced, subtle and professional."
+  },
+  "packaging": "System.Drawing resizes original artwork into PNG/ICO. SVG files embed the generated artwork without redrawing it."
+}

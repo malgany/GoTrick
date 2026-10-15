@@ -1,0 +1,18 @@
+GoTrick
+Copyright 2026 GoTrick contributors
+
+Original GoTrick code is licensed under the Apache License, Version 2.0.
+Third-party software retains its respective licenses and copyright notices.
+
+This independent distribution uses IntelliJ IDEA Community by JetBrains,
+JetBrains Runtime, LSP4IJ, gopls and Delve. It is not an official JetBrains
+product and does not include proprietary GoLand components.
+
+Modified Community distribution files: application identity resource overlay,
+product-info.json, native launcher icon/version resources and launcher names.
+The overlay also aliases the original consent metadata under the new vendor
+name. It does not grant consent on the user's behalf.
+
+See docs/THIRD-PARTY.md in the source repository, or THIRD-PARTY-NOTICES.md
+and licenses/ in the installed distribution. Original platform notices remain
+in ide/LICENSE.txt, ide/NOTICE.txt, ide/license/ and ide/jbr/legal/.

@@ -1,0 +1,13 @@
+<component xmlns="http://jetbrains.org/intellij/schema/application-info">
+  <version major="0" minor="1" micro="0" full="{0}.{1}.{2}"/>
+  <company name="GoTrick" shortName="GoTrick" url="" copyrightStart="2026"/>
+  <!-- Preserve the platform build/API identity for plugin compatibility. -->
+  <build number="IC-252.28539.97" apiVersion="IC-252.28539.97" date="20261015" majorReleaseDate="20250731"/>
+  <logo url="/gotrick/splash.png"/>
+  <icon svg="/gotrick/icon.svg" svg-small="/gotrick/icon-small.svg"/>
+  <names product="GoTrick" fullname="GoTrick" script="gotrick" motto="Go development environment"/>
+  <help has-help="false" has-context-help="false"/>
+  <essential-plugin>com.intellij.java</essential-plugin>
+  <essential-plugin>com.intellij.java.ide</essential-plugin>
+  <essential-plugin>com.intellij.modules.json</essential-plugin>
+</component>
