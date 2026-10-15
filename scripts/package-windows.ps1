@@ -32,8 +32,12 @@ New-Item -ItemType Directory -Path "$stage/tools/gotools", "$stage/licenses" -Fo
 foreach ($name in @('gopls', 'dlv')) {
     Copy-Item -LiteralPath "$root/.tools/gotools/$name.exe" -Destination "$stage/tools/gotools/"
     Copy-Item -LiteralPath "$root/.tools/gotools/$name.json" -Destination "$stage/tools/gotools/"
-    & "$root/.tools/go/bin/go.exe" version -m "$stage/tools/gotools/$name.exe" | Set-Content "$stage/licenses/$name-modules.txt" -Encoding UTF8
+    $moduleInfo = & "$root/.tools/go/bin/go.exe" version -m "$stage/tools/gotools/$name.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Cannot inventory Go helper modules.' }
+    # go version -m prints the local absolute executable path on its first line.
+    # Keep the build version but never ship a developer's profile path.
+    $moduleInfo[0] = $name + '.exe: ' + (($moduleInfo[0] -split ': ')[-1])
+    $moduleInfo | Set-Content "$stage/licenses/$name-modules.txt" -Encoding UTF8
 }
 # Preserve license texts from the verified module cache, including nested notices.
 $moduleRoot = (Resolve-Path "$root/.tools/go-work/pkg/mod").Path
@@ -49,7 +53,10 @@ Copy-Item -LiteralPath "$root/README.md" -Destination $stage
 foreach ($file in Get-ChildItem -LiteralPath "$root/licenses" -File) { Copy-Item -LiteralPath $file.FullName -Destination "$stage/licenses/" }
 $forbidden = @(Get-ChildItem -LiteralPath $stage -Recurse -File | Where-Object { $_.Name -in @('go.exe', 'gradle.bat', 'gotrick-sdk.xml', 'idea.log') -or $_.Extension -in @('.pfx', '.pem', '.key') })
 if ($forbidden.Count) { throw "Unexpected release content: $($forbidden.FullName -join ', ')" }
-$manifest = [ordered]@{name='GoTrick';version=$version;platform='windows-x64';channel='preview';goSdkBundled=$false;base='IC-252.28539.97';gopls='v0.24.0';delve='v1.27.2';lsp4ij='0.21.0';signed=$false;brandingRevision=$distribution.Revision;pluginSha256=(Get-FileHash $pluginZip -Algorithm SHA256).Hash.ToLowerInvariant()}
+$sourceCommit = (& git -C $root rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Commit the release sources before packaging.' }
+if (& git -C $root status --porcelain) { throw 'Commit or preserve pending source changes before packaging a release.' }
+$manifest = [ordered]@{name='GoTrick';version=$version;sourceCommit=$sourceCommit;platform='windows-x64';channel='preview';goSdkBundled=$false;base='IC-252.28539.97';gopls='v0.24.0';delve='v1.27.2';lsp4ij='0.21.0';signed=$false;brandingRevision=$distribution.Revision;pluginSha256=(Get-FileHash $pluginZip -Algorithm SHA256).Hash.ToLowerInvariant()}
 $manifest | ConvertTo-Json | Set-Content "$stage/release-manifest.json" -Encoding UTF8
 Copy-Item -LiteralPath "$stage/release-manifest.json" -Destination $OutputDirectory
 $compiler = & (Join-Path $PSScriptRoot 'setup-installer.ps1')
