@@ -6,9 +6,11 @@ IDE independente e de código aberto para desenvolvimento Go, com interface Inte
 
 **Status: 0.1.0 preview · Windows x64.** Ubuntu 22.04+ está planejado; ainda não há versão Linux disponível. O projeto não é afiliado à JetBrains e não inclui componentes proprietários do GoLand.
 
+**[Baixar GoTrick para Windows](https://github.com/malgany/GoTrick/releases/tag/v0.1.0)** · [Todas as versões](https://github.com/malgany/GoTrick/releases)
+
 ## Baixar e instalar
 
-Abra **Releases** na página deste repositório e escolha a versão desejada. Em **Assets**, baixe `GoTrick-<versão>-windows-x64-setup.exe`. Os arquivos automáticos **Source code** contêm o código para desenvolvimento, não o instalador.
+Abra [Releases](https://github.com/malgany/GoTrick/releases) e escolha a versão desejada. Em **Assets**, baixe `GoTrick-<versão>-windows-x64-setup.exe`. Os arquivos automáticos **Source code** contêm o código para desenvolvimento, não o instalador.
 
 O instalador cria um atalho no menu Iniciar e instala por usuário em `%LOCALAPPDATA%\Programs\GoTrick`, sem exigir administrador. A distribuição inclui a plataforma, sua JVM, gopls e Delve. O instalador desta prévia ainda não possui assinatura digital de publicação.
 
