@@ -4,9 +4,9 @@
 
 IDE independente e de código aberto para desenvolvimento Go, com interface IntelliJ, integração em Kotlin, inteligência de código do **gopls** e depuração com **Delve**.
 
-**Status: 0.1.0 preview · Windows x64.** Ubuntu 22.04+ está planejado; ainda não há versão Linux disponível. O projeto não é afiliado à JetBrains e não inclui componentes proprietários do GoLand.
+**Status: 0.1.1 preview · Windows x64.** Ubuntu 22.04+ está planejado; ainda não há versão Linux disponível. O projeto não é afiliado à JetBrains e não inclui componentes proprietários do GoLand.
 
-**[Baixar GoTrick para Windows](https://github.com/malgany/GoTrick/releases/tag/v0.1.0)** · [Todas as versões](https://github.com/malgany/GoTrick/releases)
+**[Baixar GoTrick para Windows](https://github.com/malgany/GoTrick/releases/tag/v0.1.1)** · [Todas as versões](https://github.com/malgany/GoTrick/releases)
 
 ## Baixar e instalar
 
@@ -14,7 +14,7 @@ Abra [Releases](https://github.com/malgany/GoTrick/releases) e escolha a versão
 
 O instalador cria um atalho no menu Iniciar e instala por usuário em `%LOCALAPPDATA%\Programs\GoTrick`, sem exigir administrador. A distribuição inclui a plataforma, sua JVM, gopls e Delve. O instalador desta prévia ainda não possui assinatura digital de publicação.
 
-**O SDK Go é separado.** Após abrir um projeto, use **GoTrick → Configure Go SDK…** para detectar um SDK instalado, selecionar sua pasta ou baixar uma versão oficial. O download verifica SHA-256 antes de instalar. Você também encontra a configuração em **Settings → Tools → GoTrick → Go SDK**. Após trocar o SDK, reinicie o servidor pela janela **Language Servers** se ele já estiver aberto.
+**O SDK Go é separado.** Após abrir um projeto, use **GoTrick → Configure Go SDK…** para detectar um SDK instalado, selecionar sua pasta ou baixar uma versão oficial. O download verifica SHA-256 antes de instalar. Você também encontra a configuração em **Settings → Tools → GoTrick → Go SDK**. A análise aguarda um SDK válido e reinicia automaticamente quando a seleção do projeto é alterada.
 
 A IDE pode solicitar a revisão de termos e preferências iniciais da plataforma. O GoTrick não configura essas escolhas em seu lugar.
 
@@ -61,6 +61,8 @@ Para empacotar o instalador:
 
 A saída fica na pasta irmã `GoTrick-Releases/<versão>`. Veja [o processo de release](docs/RELEASING.md) e [as instruções para agentes](AGENTS.md). `VERSION` centraliza a versão do plugin, identidade e instalador.
 
+Neste projeto, pedidos ao agente de **commit e push** incluem a próxima versão e a publicação dos downloads, conforme o [fluxo de publicação](docs/RELEASING.md#convenção-de-commit-e-push). Para enviar somente o código, peça explicitamente **sem release**. O [modelo de notas](docs/releases/TEMPLATE.md) padroniza as próximas publicações. Isso é uma instrução de trabalho para o agente; comandos Git executados manualmente não disparam publicação automática.
+
 ## Estrutura e dados locais
 
 | Caminho | Finalidade |
@@ -78,7 +80,7 @@ A base é IntelliJ IDEA Community **2025.2.6.3 / IC-252.28539.97**. A identidade
 
 ## Validação e contribuição
 
-A versão inicial passou em 58 testes automatizados e nas verificações de estrutura/configuração do plugin. Os testes cobrem linguagem, integração real com gopls/Delve, encerramento da depuração e seleção/download de SDK. Os cenários automatizados não equivalem a uma verificação de todos os fluxos visuais; a validação em uma máquina limpa continua necessária antes de tratar a versão como estável.
+A suíte inclui 59 testes automatizados e verificações de estrutura/configuração do plugin. Os testes cobrem linguagem, integração real com gopls/Delve, encerramento da depuração, seleção/download de SDK e recuperação da análise após selecionar um SDK. Os cenários automatizados não equivalem a uma verificação de todos os fluxos visuais; a validação em uma máquina limpa continua necessária antes de tratar a versão como estável.
 
 Contribuições devem incluir descrição do problema, comportamento esperado e validação pertinente. Não envie caches, dados pessoais, credenciais ou executáveis ao Git. Relatórios locais ficam ignorados; publique somente resumos sanitizados.
 

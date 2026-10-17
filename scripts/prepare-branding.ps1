@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([switch]$DeveloperRuntime)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $sourceHome = Join-Path $projectRoot '.tools/idea'
@@ -11,6 +11,7 @@ $hashInputs = @(Get-ChildItem -LiteralPath $brandingRoot -Recurse -File) + @(Get
 [string[]]$hashPaths = @($hashInputs | ForEach-Object { $_.FullName })
 [Array]::Sort($hashPaths, [StringComparer]::Ordinal)
 $hashText = ($hashPaths | ForEach-Object { (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash }) -join ''
+if ($DeveloperRuntime) { $hashText += '|developer-runtime' }
 $digest = [Security.Cryptography.SHA256]::Create()
 try { $revision = ([BitConverter]::ToString($digest.ComputeHash([Text.Encoding]::UTF8.GetBytes($hashText)))).Replace('-','').ToLowerInvariant().Substring(0,16) } finally { $digest.Dispose() }
 $distributionHome = Join-Path $projectRoot ('.runtime/distributions/GoTrick-' + $revision)
@@ -33,7 +34,14 @@ foreach ($file in Get-ChildItem -LiteralPath $sourceHome -Recurse -File) {
     catch { Copy-Item -LiteralPath $file.FullName -Destination $target }
 }
 Copy-Item -LiteralPath (Join-Path $sourceHome 'bin/idea64.exe') -Destination $executable
-Copy-Item -LiteralPath (Join-Path $sourceHome 'bin/idea64.exe.vmoptions') -Destination (Join-Path $distributionHome 'bin/gotrick64.exe.vmoptions')
+$vmOptions = Join-Path $distributionHome 'bin/gotrick64.exe.vmoptions'
+Copy-Item -LiteralPath (Join-Path $sourceHome 'bin/idea64.exe.vmoptions') -Destination $vmOptions
+if ($DeveloperRuntime) {
+    # Taskbar pins launch the native executable directly. Point it at the same
+    # isolated settings file that scripts/launch.ps1 prepares for this checkout.
+    $runtimeProperties = (Join-Path $projectRoot '.runtime/gotrick.properties').Replace('\', '/')
+    Add-Content -LiteralPath $vmOptions -Value ("-Didea.properties.file=$runtimeProperties") -Encoding ASCII
+}
 Copy-Item -LiteralPath (Join-Path $brandingRoot 'assets/icon.svg') -Destination (Join-Path $distributionHome 'bin/gotrick.svg')
 Copy-Item -LiteralPath (Join-Path $brandingRoot 'assets/GoTrick.ico') -Destination (Join-Path $distributionHome 'bin/GoTrick.ico')
 if (-not ('GoTrickNativeBranding' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'NativeBranding.cs') }

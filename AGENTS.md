@@ -23,6 +23,8 @@
 
 ## Version and release
 
+- Project convention requested by the maintainer: a request to "commit and push" includes preparing and publishing the next version with downloadable Release assets. Follow docs/RELEASING.md and use the gotrick-release skill when available. A request limited to local commits, code-only pushes, or no release overrides this convention. Ordinary edits alone do not authorize publication.
+- Start release notes from docs/releases/TEMPLATE.md; update the README version and download link together with VERSION.
 - VERSION is the single version source (major.minor.patch). Keep release notes in docs/releases/<version>.md.
 - Use annotated tags v<version>. Preview versions are GitHub prereleases until the documented acceptance criteria pass.
 - Run scripts/package-windows.ps1; its default output is the sibling GoTrick-Releases/<version> folder.

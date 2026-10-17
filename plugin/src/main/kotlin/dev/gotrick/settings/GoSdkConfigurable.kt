@@ -12,7 +12,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.util.ui.FormBuilder
 import dev.gotrick.toolchain.GoSdkDiscovery
 import dev.gotrick.toolchain.GoSdkDownload
-import dev.gotrick.toolchain.GoToolchain
+import dev.gotrick.lsp.GoLanguageServerLifecycle
 import java.awt.BorderLayout
 import java.io.File
 import java.nio.file.Path
@@ -45,7 +45,7 @@ class GoSdkConfigurable(private val project: Project) : SearchableConfigurable {
             .addLabeledComponent("Project Go SDK (GOROOT):", field)
             .addComponent(JLabel("<html>Leave blank to detect an installed SDK or use the application default.<br>" +
                 "The SDK is separate from GoTrick. This choice applies only to this project.<br>" +
-                "After applying a different SDK, restart gopls in the Language Servers window.</html>"))
+                "Code analysis restarts automatically after applying a different SDK.</html>"))
             .addComponent(buttons).panel, BorderLayout.NORTH) }
         return form!!
     }
@@ -54,7 +54,11 @@ class GoSdkConfigurable(private val project: Project) : SearchableConfigurable {
     override fun apply() {
         val home = sdk?.text?.trim() ?: return
         if (home.isNotEmpty() && !GoSdkDiscovery.isSdk(File(home))) throw ConfigurationException("Select a Go SDK containing bin/go.exe, src and pkg/tool.")
-        GoProjectSdkSettings.getInstance(project).home = home
+        val settings = GoProjectSdkSettings.getInstance(project)
+        if (settings.home != home) {
+            settings.home = home
+            GoLanguageServerLifecycle.sdkChanged(project)
+        }
     }
     override fun disposeUIResources() { sdk?.dispose(); sdk = null; form = null }
 

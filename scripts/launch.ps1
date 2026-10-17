@@ -24,7 +24,7 @@ $ideaExe = Join-Path $toolsRoot 'idea/bin/idea64.exe'
 foreach ($required in @($ideaExe, (Join-Path $toolsRoot 'lsp4ij/lib/lsp4ij-0.21.0.jar'))) {
     if (-not (Test-Path -LiteralPath $required)) { throw "Missing dependency $required. Run scripts/setup.ps1 first." }
 }
-$brandedDistribution = & (Join-Path $PSScriptRoot 'prepare-branding.ps1')
+$brandedDistribution = & (Join-Path $PSScriptRoot 'prepare-branding.ps1') -DeveloperRuntime
 $ideaExe = $brandedDistribution.Executable
 
 $savedEnvironment = @{}
@@ -90,10 +90,6 @@ try {
     if ($PrepareOnly) {
         Write-Host "GoTrick runtime prepared: $properties"
         return
-    }
-    if (-not $Project) {
-        $sample = Join-Path $projectRoot 'examples/hello-go'
-        if (Test-Path -LiteralPath $sample -PathType Container) { $Project = $sample }
     }
     $startArguments = @{FilePath = $ideaExe; WorkingDirectory = $projectRoot; PassThru = $true}
     if ($Project) {

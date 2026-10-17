@@ -19,6 +19,12 @@ object GoToolchain {
     @JvmStatic fun resolveDelve(project: Project? = null): String =
         resolve(GoTrickSettings.getInstance().delveExecutable, "dlv", project)
 
+    fun hasGoSdk(project: Project): Boolean {
+        val executable = File(resolveGo(project))
+        val sdk = executable.parentFile?.parentFile ?: return false
+        return executable.isAbsolute && executable.isFile && GoSdkDiscovery.isSdk(sdk)
+    }
+
     fun resolve(configured: String, name: String, project: Project? = null): String {
         val selected = configured.trim().removeSurrounding("\"")
         if (selected.isNotEmpty()) return selected

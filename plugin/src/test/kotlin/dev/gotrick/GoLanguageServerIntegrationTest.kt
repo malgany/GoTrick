@@ -14,6 +14,10 @@ import org.eclipse.lsp4j.CompletionParams
 import org.eclipse.lsp4j.DefinitionParams
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.TextDocumentIdentifier
+import dev.gotrick.lsp.GoLanguageServerFactory
+import dev.gotrick.lsp.GoLanguageServerLifecycle
+import dev.gotrick.settings.GoProjectSdkSettings
+import com.redhat.devtools.lsp4ij.server.CannotStartProcessException
 
 /** Exercises the installed LSP4IJ registration, GoConnection provider and a real gopls process. */
 class GoLanguageServerIntegrationTest : HeavyPlatformTestCase() {
@@ -72,6 +76,39 @@ class GoLanguageServerIntegrationTest : HeavyPlatformTestCase() {
             definitions.right.filter { it.targetUri == uri }.map { it.targetSelectionRange.start.line }
         }
         assertTrue("Definition must point to the greet declaration on line 2", 1 in definitionLines)
+    }
+
+    fun testMissingSdkDoesNotStartGoplsAndSelectingSdkRecoversAnalysis() {
+        createProjectFile("go.mod", "module example/sdk-recovery\n\ngo 1.22\n")
+        val file = createProjectFile("main.go", "package main\nfunc main() {}\n")
+        FileDocumentManager.getInstance().saveAllDocuments()
+        val settings = GoProjectSdkSettings.getInstance(project)
+        settings.home = java.io.File(project.basePath, "missing-sdk").absolutePath
+        val accessor = LanguageServiceAccessor.getInstance(project)
+        val unavailable = PlatformTestUtil.waitForFuture(
+            accessor.getLanguageServers(file, { true }, { true }), 60_000)
+        assertFalse("A missing SDK must not start a broken gopls session",
+            unavailable.any { it.serverDefinition.id == "gotrick.gopls" })
+        assertTrue(accessor.startedServers.none { it.currentProcessId != null })
+
+        val manual = GoLanguageServerFactory().createConnectionProvider(project)
+        try {
+            manual.start()
+            fail("An explicit server start must also require a Go SDK")
+        } catch (expected: CannotStartProcessException) {
+            assertTrue(expected.message.orEmpty().contains("Configure Go SDK"))
+        } finally { manual.stop() }
+
+        settings.home = java.io.File(System.getProperty("gotrick.tools"), "go").absolutePath
+        GoLanguageServerLifecycle.sdkChanged(project)
+        val available = PlatformTestUtil.waitForFuture(
+            accessor.getLanguageServers(file, { true }, { true }), 60_000)
+        val server = available.single { it.serverDefinition.id == "gotrick.gopls" }
+        val uri = server.serverWrapper.toUriString(file.virtualFile)
+        val symbols = PlatformTestUtil.waitForFuture(server.textDocumentService.documentSymbol(
+            org.eclipse.lsp4j.DocumentSymbolParams(TextDocumentIdentifier(uri))), 60_000)
+        assertTrue("Analysis must recover without reopening the project",
+            symbols.any { if (it.isLeft) it.left.name == "main" else it.right.name == "main" })
     }
 
     private fun createProjectFile(name: String, content: String): PsiFile {

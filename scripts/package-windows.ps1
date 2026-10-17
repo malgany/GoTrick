@@ -64,6 +64,9 @@ $compiler = & (Join-Path $PSScriptRoot 'setup-installer.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
 if ($Portable) { [IO.Compression.ZipFile]::CreateFromDirectory($stage, (Join-Path $OutputDirectory "GoTrick-$version-windows-x64.zip"), [IO.Compression.CompressionLevel]::Optimal, $true) }
 Copy-Item -LiteralPath "$root/docs/releases/$version.md" -Destination "$OutputDirectory/RELEASE-NOTES.md"
+# Record the packaged commit in the generated asset, avoiding a self-referential
+# commit hash in tracked release notes. The manifest records the same revision.
+Add-Content -LiteralPath "$OutputDirectory/RELEASE-NOTES.md" -Value "`n## Revisão empacotada`n`nCommit: $sourceCommit. Consulte release-manifest.json e SHA256SUMS.txt para conferir a origem e a integridade dos arquivos." -Encoding UTF8
 Get-ChildItem -LiteralPath $OutputDirectory -File | Where-Object Name -ne 'SHA256SUMS.txt' | Sort-Object Name | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name } | Set-Content "$OutputDirectory/SHA256SUMS.txt" -Encoding ASCII
 Write-Host "Release prepared: $OutputDirectory"
 Write-Host "Staging (immutable): $stage"
