@@ -5,6 +5,7 @@ import dev.gotrick.settings.GoProjectSdkSettings
 import dev.gotrick.settings.GoSdkConfigurable
 import dev.gotrick.settings.GoTrickSettings
 import dev.gotrick.toolchain.GoToolchain
+import dev.gotrick.toolchain.GoSdkDiscovery
 import java.io.File
 
 class GoSdkPlatformTest : BasePlatformTestCase() {
@@ -17,7 +18,7 @@ class GoSdkPlatformTest : BasePlatformTestCase() {
             global.goExecutable = "C:/nonexistent/other-go.exe"
             settings.home = sdk
             val executable = GoToolchain.resolveGo(project)
-            assertEquals(File(sdk, "bin/go.exe").absolutePath, executable)
+            assertEquals(GoSdkDiscovery.executable(sdk).absolutePath, executable)
             assertEquals(sdk, GoToolchain.environment(project)["GOROOT"])
             assertTrue(GoToolchain.environment(project)["PATH"]!!.startsWith(File(sdk, "bin").path))
             val restored = GoProjectSdkSettings()
@@ -32,8 +33,8 @@ class GoSdkPlatformTest : BasePlatformTestCase() {
     fun testInvalidProjectSdkDoesNotSilentlyFallbackToDeveloperSdk() {
         val settings = GoProjectSdkSettings.getInstance(project)
         try {
-            settings.home = "C:/missing/gotrick-test-sdk"
-            assertTrue(GoToolchain.resolveGo(project).replace('\\', '/').contains("C:/missing/gotrick-test-sdk/bin/go.exe"))
+            settings.home = File(project.basePath, "missing-gotrick-test-sdk").absolutePath
+            assertEquals(GoSdkDiscovery.executable(settings.home).absolutePath, GoToolchain.resolveGo(project))
         } finally { settings.home = "" }
     }
 }

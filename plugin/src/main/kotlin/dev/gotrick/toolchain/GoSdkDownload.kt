@@ -7,6 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.zip.ZipFile
+import com.intellij.util.io.Decompressor
 
 /** Optional SDK installation, separate from the IDE and its internal tools. */
 object GoSdkDownload {
@@ -15,8 +16,8 @@ object GoSdkDownload {
     }
 
     fun releases(): List<Release> {
-        require(System.getProperty("os.name").startsWith("Windows") && System.getProperty("os.arch") in setOf("amd64", "x86_64")) {
-            "SDK downloads currently support Windows x64. Select an existing SDK on other systems."
+        require(System.getProperty("os.name").let { it.startsWith("Windows") || it == "Linux" } && System.getProperty("os.arch") in setOf("amd64", "x86_64")) {
+            "SDK downloads support Windows and Linux x64. Select an existing SDK on other systems."
         }
         val connection = connect("https://go.dev/dl/?mode=json&include=all")
         try {
@@ -24,11 +25,11 @@ object GoSdkDownload {
         } finally { connection.disconnect() }
     }
 
-    internal fun parseReleases(json: String): List<Release> = JsonParser.parseString(json).asJsonArray.flatMap { item ->
+    internal fun parseReleases(json: String, os: String = if (System.getProperty("os.name").startsWith("Windows")) "windows" else "linux"): List<Release> = JsonParser.parseString(json).asJsonArray.flatMap { item ->
         val release = item.asJsonObject
         if (!release.get("stable").asBoolean) emptyList() else release.getAsJsonArray("files").mapNotNull { value ->
             val file = value.asJsonObject
-            if (file.get("os").asString != "windows" || file.get("arch").asString != "amd64" || file.get("kind").asString != "archive") null
+            if (file.get("os").asString != os || file.get("arch").asString != "amd64" || file.get("kind").asString != "archive") null
             // Historical releases can lack SHA-256 or size metadata. Never offer
             // unverifiable archives, but do not hide valid modern releases.
             else runCatching {
@@ -40,7 +41,7 @@ object GoSdkDownload {
 
     private fun validateRelease(release: Release) {
         require(Regex("go[0-9]+\\.[0-9]+(?:\\.[0-9]+)?").matches(release.version)) { "Invalid SDK version" }
-        require(release.filename == "${release.version}.windows-amd64.zip") { "Invalid SDK archive name" }
+        require(release.filename in setOf("${release.version}.windows-amd64.zip", "${release.version}.linux-amd64.tar.gz")) { "Invalid SDK archive name" }
         require(Regex("[a-fA-F0-9]{64}").matches(release.sha256) && release.size > 0) { "Missing SDK checksum or size" }
     }
 
@@ -58,7 +59,7 @@ object GoSdkDownload {
         require(!Files.exists(destination)) { "SDK destination already exists: $destination. Select it as a local SDK, or choose another directory." }
         val stage = Files.createTempDirectory(parent, ".gotrick-sdk-")
         try {
-            val archive = stage.resolve("sdk.zip")
+            val archive = stage.resolve(release.filename)
             val digest = MessageDigest.getInstance("SHA-256")
             val connection = connect("https://go.dev/dl/${release.filename}")
             var size = 0L
@@ -97,6 +98,16 @@ object GoSdkDownload {
     internal fun extract(archive: Path, destination: Path, canceled: () -> Unit = {}) {
         val root = destination.toAbsolutePath().normalize()
         Files.createDirectories(root)
+        if (archive.fileName.toString().endsWith(".tar.gz")) {
+            Decompressor.Tar(archive).entryFilter { entry ->
+                canceled()
+                require(entry.type != Decompressor.Entry.Type.SYMLINK && entry.linkTarget.isNullOrEmpty()) { "SDK archive links are not allowed" }
+                require(!entry.name.contains('\\') && !entry.name.contains(':')) { "Invalid SDK archive path" }
+                require((entry.name == "go" || entry.name.startsWith("go/")) && root.resolve(entry.name).normalize().startsWith(root)) { "SDK archive path escapes destination" }
+                true
+            }.overwrite(false).extract(root)
+            return
+        }
         ZipFile(archive.toFile()).use { zip ->
             for (entry in zip.entries()) {
                 canceled()

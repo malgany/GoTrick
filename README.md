@@ -4,13 +4,29 @@
 
 IDE independente e de código aberto para desenvolvimento Go, com interface IntelliJ, integração em Kotlin, inteligência de código do **gopls** e depuração com **Delve**.
 
-**Status: 0.1.1 preview · Windows x64.** Ubuntu 22.04+ está planejado; ainda não há versão Linux disponível. O projeto não é afiliado à JetBrains e não inclui componentes proprietários do GoLand.
+**Status: 0.1.2 preview · Windows x64 e Ubuntu 24.04 x64.** O projeto não é afiliado à JetBrains e não inclui componentes proprietários do GoLand.
 
-**[Baixar GoTrick para Windows](https://github.com/malgany/GoTrick/releases/tag/v0.1.1)** · [Todas as versões](https://github.com/malgany/GoTrick/releases)
+**[Baixar para Windows ou Ubuntu 24.04](https://github.com/malgany/GoTrick/releases/tag/v0.1.2)** · [Todas as versões](https://github.com/malgany/GoTrick/releases)
 
 ## Baixar e instalar
 
 Abra [Releases](https://github.com/malgany/GoTrick/releases) e escolha a versão desejada. Em **Assets**, baixe `GoTrick-<versão>-windows-x64-setup.exe`. Os arquivos automáticos **Source code** contêm o código para desenvolvimento, não o instalador.
+
+No **Ubuntu 24.04 x64**, baixe `GoTrick-<versão>-ubuntu-24.04-x64.tar.gz`. Esse arquivo contém a aplicação Linux completa. Os arquivos com `sources` no nome contêm fontes de dependências e não servem para instalar a IDE.
+
+Extraia a aplicação em uma pasta permanente do seu usuário e registre o atalho:
+
+```bash
+mkdir -p ~/Apps
+tar -xzf ~/Downloads/GoTrick-0.1.2-ubuntu-24.04-x64.tar.gz -C ~/Apps
+cd ~/Apps/GoTrick-0.1.2
+./install.sh
+./bin/gotrick
+```
+
+O aplicativo também pode ser aberto pelo menu **GoTrick**. `install.sh` registra a pasta extraída, sem exigir administrador; mantenha essa pasta no lugar. `uninstall.sh` remove apenas o atalho dessa instalação, preservando os arquivos e seus projetos. Para atualizar, extraia a próxima versão em outra pasta e execute seu `install.sh`.
+
+O pacote Ubuntu inclui JBR, gopls e Delve para Linux, sem exigir Java instalado à parte. Requer Python 3 e as bibliotecas de uma sessão gráfica Ubuntu Desktop. Em instalações mínimas: `sudo apt install python3 libxrender1 libxtst6 libxi6 libfreetype6 libfontconfig1 libasound2t64 libgtk-3-0t64 libnss3 libgbm1`. ARM64, Ubuntu 22.04 e outras distribuições não foram validados.
 
 O instalador cria um atalho no menu Iniciar e instala por usuário em `%LOCALAPPDATA%\Programs\GoTrick`, sem exigir administrador. A distribuição inclui a plataforma, sua JVM, gopls e Delve. O instalador desta prévia ainda não possui assinatura digital de publicação.
 
@@ -61,6 +77,8 @@ Para empacotar o instalador:
 
 A saída fica na pasta irmã `GoTrick-Releases/<versão>`. Veja [o processo de release](docs/RELEASING.md) e [as instruções para agentes](AGENTS.md). `VERSION` centraliza a versão do plugin, identidade e instalador.
 
+Para desenvolver no Ubuntu 24.04 x64, instale OpenJDK 21, Python 3, curl, Git e Node.js. Execute `python3 scripts/setup-linux.py`, `bash build.sh` e `node scripts/smoke.mjs`. Para empacotar uma revisão limpa e já compilada: `python3 scripts/package-linux.py`. O bootstrap baixa arquivos oficiais com hashes fixos e mantém o SDK de desenvolvimento em `.tools/`.
+
 Neste projeto, pedidos ao agente de **commit e push** incluem a próxima versão e a publicação dos downloads, conforme o [fluxo de publicação](docs/RELEASING.md#convenção-de-commit-e-push). Para enviar somente o código, peça explicitamente **sem release**. O [modelo de notas](docs/releases/TEMPLATE.md) padroniza as próximas publicações. Isso é uma instrução de trabalho para o agente; comandos Git executados manualmente não disparam publicação automática.
 
 ## Estrutura e dados locais
@@ -70,17 +88,20 @@ Neste projeto, pedidos ao agente de **commit e push** incluem a próxima versão
 | `plugin/src/` | Código Kotlin e testes |
 | `branding/` | Identidade visual e origem dos assets |
 | `packaging/windows/` | Instalador e inicializador da distribuição |
+| `packaging/linux/` | Inicializador Linux e registro do atalho |
 | `scripts/` | Preparação, validação e empacotamento |
 | `docs/` | Licenças, releases e decisões de distribuição |
 | `.tools/`, `.runtime/`, `validation/` | Dependências, ambiente e resultados locais, fora do Git |
 
 Na instalação final, preferências/plugins ficam em `%APPDATA%\GoTrick`; caches/logs em `%LOCALAPPDATA%\GoTrick`. A desinstalação preserva esses dados e os projetos. Na execução pelo código-fonte, os dados ficam isolados em `.runtime/`.
 
+No Ubuntu, preferências ficam em `~/.config/GoTrick`, plugins em `~/.local/share/GoTrick` e caches/logs em `~/.cache/GoTrick`, respeitando `XDG_CONFIG_HOME`, `XDG_DATA_HOME` e `XDG_CACHE_HOME`.
+
 A base é IntelliJ IDEA Community **2025.2.6.3 / IC-252.28539.97**. A identidade é aplicada por sobreposição de recursos e metadados; não é uma compilação integral da plataforma. As atualizações da plataforma são entregues pelo GoTrick para manter a compatibilidade. Atualizações de plugins continuam disponíveis. Feche a IDE antes de instalar uma nova versão.
 
 ## Validação e contribuição
 
-A suíte inclui 59 testes automatizados e verificações de estrutura/configuração do plugin. Os testes cobrem linguagem, integração real com gopls/Delve, encerramento da depuração, seleção/download de SDK e recuperação da análise após selecionar um SDK. Os cenários automatizados não equivalem a uma verificação de todos os fluxos visuais; a validação em uma máquina limpa continua necessária antes de tratar a versão como estável.
+A suíte inclui testes automatizados e verificações de estrutura/configuração do plugin nos dois sistemas. Os testes cobrem linguagem, integração real com gopls/Delve, encerramento da depuração, seleção/download de SDK e recuperação da análise após selecionar um SDK. Consulte as notas da versão e os assets de validação para os resultados. A validação Ubuntu usa 24.04 em WSL2; todos os fluxos visuais em um desktop físico continuam pendentes antes de tratar a versão como estável.
 
 Contribuições devem incluir descrição do problema, comportamento esperado e validação pertinente. Não envie caches, dados pessoais, credenciais ou executáveis ao Git. Relatórios locais ficam ignorados; publique somente resumos sanitizados.
 

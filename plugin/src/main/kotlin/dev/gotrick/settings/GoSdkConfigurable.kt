@@ -53,7 +53,7 @@ class GoSdkConfigurable(private val project: Project) : SearchableConfigurable {
     override fun reset() { sdk?.text = GoProjectSdkSettings.getInstance(project).home }
     override fun apply() {
         val home = sdk?.text?.trim() ?: return
-        if (home.isNotEmpty() && !GoSdkDiscovery.isSdk(File(home))) throw ConfigurationException("Select a Go SDK containing bin/go.exe, src and pkg/tool.")
+        if (home.isNotEmpty() && !GoSdkDiscovery.isSdk(File(home))) throw ConfigurationException("Select a Go SDK containing bin/${GoSdkDiscovery.executableName}, src and pkg/tool.")
         val settings = GoProjectSdkSettings.getInstance(project)
         if (settings.home != home) {
             settings.home = home

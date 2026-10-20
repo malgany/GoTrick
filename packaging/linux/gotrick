@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Launch the bundled Linux IDE using per-user XDG settings."""
+import os
+from pathlib import Path
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parents[1]
+config = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'GoTrick'
+data = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local/share')) / 'GoTrick'
+cache = Path(os.environ.get('XDG_CACHE_HOME', Path.home() / '.cache')) / 'GoTrick'
+for folder in (config, data / 'plugins', cache / 'system', cache / 'log'):
+    folder.mkdir(parents=True, exist_ok=True)
+
+def escape(value):
+    value = str(value).replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r')
+    result = ''
+    for char in value:
+        if ord(char) < 128:
+            result += char
+        else:
+            encoded = char.encode('utf-16-be')
+            result += ''.join('\\u' + encoded[i:i+2].hex() for i in range(0, len(encoded), 2))
+    return result
+
+settings = {
+    'ide.no.platform.update': 'GoTrick',
+    'idea.config.path': config,
+    'idea.plugins.path': data / 'plugins',
+    'idea.system.path': cache / 'system',
+    'idea.log.path': cache / 'log',
+    'gotrick.tools': root / 'tools',
+    'plugin.path': os.pathsep.join(str(p) for p in sorted((root / 'plugins').iterdir()) if p.is_dir()),
+}
+properties = cache / 'gotrick.properties'
+with tempfile.NamedTemporaryFile(mode='w', encoding='ascii', dir=cache, delete=False) as output:
+    for key, value in settings.items():
+        output.write(key + '=' + escape(value) + '\n')
+    temporary = Path(output.name)
+temporary.replace(properties)
+environment = dict(os.environ, IDEA_PROPERTIES=str(properties), GOTRICK_TOOLS=str(root / 'tools'))
+if sys.argv[1:] == ['--prepare-only']:
+    print(properties)
+else:
+    launcher = root / 'ide/bin/gotrick'
+    os.execve(launcher, [str(launcher), *sys.argv[1:]], environment)

@@ -58,3 +58,7 @@ As licenças originais da plataforma permanecem em `ide/LICENSE.txt`, `ide/NOTIC
 - Community: [fontes idea/252.28539.97](https://github.com/JetBrains/intellij-community/tree/idea/252.28539.97); modificações de empacotamento estão em scripts/prepare-branding.ps1, scripts/NativeBranding.cs e branding/ deste repositório.
 
 Ao distribuir binários publicamente, forneça os arquivos de fontes correspondentes do JBR e LSP4IJ como assets junto da release, além destes links e dos avisos preservados.
+
+## Pacote Ubuntu 24.04 x64
+
+O pacote Linux usa o arquivo oficial `ideaIC-2025.2.6.3.tar.gz`, com JBR Linux incluído, e preserva o build IC-252.28539.97. `scripts/setup-linux.py` fixa o SHA-256 do arquivo e dos demais downloads. `scripts/package-linux.py` aplica a mesma identidade em cópias novas e inclui gopls/Delve compilados nativamente para Linux, sem SDK Go, Gradle ou JDK de desenvolvimento. Os fontes JBR da revisão 21.0.9b1038.78 e LSP4IJ 0.21.0 correspondem aos componentes dos dois pacotes. Os avisos, licenças e inventários são preservados em ambos.

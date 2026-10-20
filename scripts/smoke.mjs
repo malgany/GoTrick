@@ -6,11 +6,12 @@ import net from 'node:net';
 import assert from 'node:assert/strict';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const tools = path.join(root, '.tools');
+const tools = process.env.GOTRICK_SMOKE_TOOLS || path.join(root, '.tools');
 const env = { ...process.env, GOTOOLCHAIN: 'local', GOCACHE: path.join(tools, 'go-cache'), GOPATH: path.join(tools, 'go-work'), PATH: `${path.join(tools, 'go', 'bin')}${path.delimiter}${process.env.PATH}` };
-const go = path.join(tools, 'go', 'bin', 'go.exe');
-const gopls = path.join(tools, 'gotools', 'gopls.exe');
-const delve = path.join(tools, 'gotools', 'dlv.exe');
+const executable = name => process.platform === 'win32' ? `${name}.exe` : name;
+const go = path.join(tools, 'go', 'bin', executable('go'));
+const gopls = path.join(tools, 'gotools', executable('gopls'));
+const delve = path.join(tools, 'gotools', executable('dlv'));
 const fixture = path.join(root, 'build', 'smoke', `Go project ação ${Date.now()}`);
 const report = { at: new Date().toISOString(), checks: [], versions: {} };
 const children = new Set();

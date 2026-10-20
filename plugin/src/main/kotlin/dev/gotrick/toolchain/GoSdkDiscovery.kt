@@ -20,6 +20,9 @@ object GoSdkDiscovery {
             File(userHome, "sdk").listFiles()?.filter { it.isDirectory && !it.name.startsWith('.') }
                 ?.sortedByDescending { it.lastModified() }?.let { addAll(it) }
         }
-        return candidates.filter(::isSdk).distinctBy { it.absoluteFile.normalize().path.lowercase() }
+        return candidates.filter(::isSdk).distinctBy {
+            val path = it.canonicalPath
+            if (System.getProperty("os.name").startsWith("Windows")) path.lowercase() else path
+        }
     }
 }
