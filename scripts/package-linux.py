@@ -47,8 +47,9 @@ def main():
     launch = next(item for item in product['launch'] if item['os'] == 'Linux' and item['arch'] == 'amd64')
     shutil.copy2(ide / launch['launcherPath'], ide / 'bin/gotrick')
     shutil.copy2(ide / launch['vmOptionsFilePath'], ide / 'bin/gotrick.vmoptions')
+    ET.register_namespace('', 'http://jetbrains.org/intellij/schema/application-info')
     identity = ET.parse(ROOT / 'branding/GoTrickApplicationInfo.xml')
-    identity.find('version').attrib.update(dict(zip(('major', 'minor', 'micro'), version.split('.'))))
+    identity.find('{*}version').attrib.update(dict(zip(('major', 'minor', 'micro'), version.split('.'))))
     with zipfile.ZipFile(ide / 'lib/gotrick-branding.jar', 'w', zipfile.ZIP_DEFLATED) as brand:
         brand.writestr('idea/IdeaApplicationInfo.xml', ET.tostring(identity.getroot(), encoding='utf-8'))
         with zipfile.ZipFile(source / 'lib/app-client.jar') as upstream:
